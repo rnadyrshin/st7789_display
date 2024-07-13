@@ -1,8 +1,11 @@
-set(srcs "test_app_main.c"
-         "test_spi_lcd_panel.c")
+set(srcs "display"
+         "display/fonts"
+         "st7789"
+         ".")
+
 
 # In order for the cases defined by `TEST_CASE` to be linked into the final elf,
 # the component can be registered as WHOLE_ARCHIVE
-idf_component_register(SRCS ${srcs}
+idf_component_register(SRC_DIRS ${srcs}
                        PRIV_REQUIRES esp_lcd unity driver
                        WHOLE_ARCHIVE)

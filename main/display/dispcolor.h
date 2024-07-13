@@ -1,12 +1,49 @@
-#include <stdio.h>
-#include <string.h>
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
+#pragma once
 
-#include "esp_heap_caps.h"
-#include "display/dispcolor.h"
-#include "st7789/st7789.h"
-/*
+#include <stdint.h>
+
+#define DISPTYPE_st7789        4
+
+#define DISPCOLOR_type         DISPTYPE_st7789
+
+typedef struct
+{
+	uint16_t r:5;
+	uint16_t g:6;
+	uint16_t b:5;
+} sRGB565;
+
+typedef struct
+{
+	uint8_t r;
+	uint8_t g;
+	uint8_t b;
+} sRGB888;
+
+typedef union
+{
+	sRGB565 rgb;
+	uint16_t word;
+} uRGB565;
+
+
+#define RGB565(r, g, b)         (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
+
+// �������� �����
+#define BLACK    0x0000
+#define BLUE     0x001F
+#define RED      0xF800
+#define GREEN    0x07E0
+#define CYAN     0x07FF
+#define MAGENTA  0xF81F
+#define YELLOW   0xFFE0 
+#define WHITE    0xFFFF
+
+
+void dispcolor_Init(uint16_t Width, uint16_t Height);
+void dispcolor_Update();
+void dispcolor_ClearScreen(void);
+void dispcolor_SetBrightness(uint8_t Value);
 void dispcolor_FillScreen(uint16_t color);
 void dispcolor_DrawPixel(int16_t X, int16_t Y, uint16_t color);
 void dispcolor_DrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color);
@@ -26,33 +63,3 @@ int16_t dispcolor_DrawString(int16_t X, int16_t Y, uint8_t FontID, char *Str, ui
 int16_t dispcolor_DrawString_Bg(int16_t X, int16_t Y, uint8_t FontID, char *Str, uint16_t TextColor, uint16_t BgColor);
 int16_t dispcolor_printf(int16_t X, int16_t Y, uint8_t FontID, uint16_t TextColor, const char *args, ...);
 int16_t dispcolor_printf_Bg(int16_t X, int16_t Y, uint8_t FontID, uint16_t TextColor, uint16_t BgColor, const char *args, ...);
-*/
-
-void app_main()
-{
-    dispcolor_Init(170, 320);
-    dispcolor_ClearScreen();
-    dispcolor_SetBrightness(100);
-
-    dispcolor_DrawLine(0, 0, 170, 320, RED);        // BLUE
-    dispcolor_DrawLine(170, 0, 0, 320, RED);      // RED
-
-    dispcolor_DrawLine(0, 0, 170, 0, GREEN);         // GREEN
-    dispcolor_DrawLine(0, 319, 169, 319, GREEN);    // WHITE
-
-    dispcolor_DrawLine(0, 0, 0, 319, BLUE);
-    dispcolor_DrawLine(169, 0, 169, 319, BLUE);
-
-    while (1) {
-        dispcolor_Update();
-        vTaskDelay(1000);
-    }
-
-
-
-
-    //lcd_panel_test();
-
-    //printf("turn off the panel\r\n");
-    //st7789_deinit();
-}

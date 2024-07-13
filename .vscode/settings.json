@@ -1,4 +1,7 @@
 {
     "idf.adapterTargetName": "esp32s3",
-    "idf.port": "/dev/tty.usbmodem1101"
+    "idf.port": "/dev/tty.usbmodem1101",
+    "files.associations": {
+        "st7789.h": "c"
+    }
 }
