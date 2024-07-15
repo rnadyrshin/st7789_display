@@ -5,6 +5,7 @@
 
 #include "esp_heap_caps.h"
 #include "display/dispcolor.h"
+#include "display/fonts/font.h"
 #include "st7789/st7789.h"
 /*
 void dispcolor_FillScreen(uint16_t color);
@@ -28,24 +29,30 @@ int16_t dispcolor_printf(int16_t X, int16_t Y, uint8_t FontID, uint16_t TextColo
 int16_t dispcolor_printf_Bg(int16_t X, int16_t Y, uint8_t FontID, uint16_t TextColor, uint16_t BgColor, const char *args, ...);
 */
 
+uint32_t cntr = 0;
+
 void app_main()
 {
     dispcolor_Init(170, 320);
     dispcolor_ClearScreen();
     dispcolor_SetBrightness(100);
 
-    dispcolor_DrawLine(0, 0, 170, 320, RED);        // BLUE
-    dispcolor_DrawLine(170, 0, 0, 320, RED);      // RED
-
-    dispcolor_DrawLine(0, 0, 170, 0, GREEN);         // GREEN
-    dispcolor_DrawLine(0, 319, 169, 319, GREEN);    // WHITE
-
-    dispcolor_DrawLine(0, 0, 0, 319, BLUE);
-    dispcolor_DrawLine(169, 0, 169, 319, BLUE);
-
     while (1) {
+        dispcolor_ClearScreen();
+
+        dispcolor_DrawLine(0, 0, 170, 320, RED);
+        dispcolor_DrawLine(170, 0, 0, 320, RED);
+
+        dispcolor_DrawLine(0, 0, 170, 0, GREEN);
+        dispcolor_DrawLine(0, 319, 169, 319, GREEN);
+
+        dispcolor_DrawLine(0, 0, 0, 319, BLUE);
+        dispcolor_DrawLine(169, 0, 169, 319, BLUE);
+
+        dispcolor_printf(10, 10, FONTID_10X16F, WHITE, "Counter %d", cntr++);
+
         dispcolor_Update();
-        vTaskDelay(1000);
+        vTaskDelay(20);
     }
 
 

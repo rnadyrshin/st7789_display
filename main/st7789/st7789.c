@@ -16,11 +16,11 @@
 #define TEST_LCD_V_RES          320
 
 #define TEST_SPI_HOST_ID  SPI2_HOST
-#define TEST_IMG_SIZE (200 * 200 * sizeof(uint16_t))
 
 static uint16_t _width = 1;
 static uint16_t _height = 1;
-static uint16_t *screen_buff = NULL;
+static uint16_t *buffers[2] = {NULL, NULL};
+static uint8_t curr_buff = 0;
 static esp_lcd_panel_io_handle_t io_handle = NULL;
 static esp_lcd_panel_handle_t panel_handle = NULL;
 
@@ -39,7 +39,7 @@ static void lcd_common_init(esp_lcd_panel_io_handle_t *io_handle, esp_lcd_panel_
         .miso_io_num = -1,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = 100 * 100 * sizeof(uint16_t),
+        .max_transfer_sz = _width * _height * sizeof(uint16_t),
     };
     spi_bus_initialize(TEST_SPI_HOST_ID, &buscfg, SPI_DMA_CH_AUTO);
 
@@ -58,11 +58,13 @@ static void lcd_common_init(esp_lcd_panel_io_handle_t *io_handle, esp_lcd_panel_
 }
 
 void st7789_DrawPixel(int16_t x, int16_t y, uint16_t color) {
-    screen_buff[(y * _width) + x] = color;
+    uint16_t *buff = buffers[curr_buff];
+    buff[(y * _width) + x] = color;
 }
 
 uint16_t st7789_GetPixel(int16_t x, int16_t y) {
-    return screen_buff[(y * _width) + x];
+    uint16_t *buff = buffers[curr_buff];
+    return buff[(y * _width) + x];
 }
 
 void st7789_init(uint16_t width, uint16_t height) {
@@ -97,8 +99,10 @@ void st7789_init(uint16_t width, uint16_t height) {
     esp_lcd_panel_disp_on_off(panel_handle, true);
     gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, 1);
 
-    screen_buff = heap_caps_malloc(width * height * 2, MALLOC_CAP_DMA);
-    memset(screen_buff, 0, width * height * 2);
+    buffers[0] = heap_caps_malloc(width * height * 2, MALLOC_CAP_DMA);
+    memset(buffers[0], 0, width * height * 2);
+    buffers[1] = heap_caps_malloc(width * height * 2, MALLOC_CAP_DMA);
+    memset(buffers[1], 0, width * height * 2);
 }
 
 void st7789_deinit() {
@@ -107,12 +111,22 @@ void st7789_deinit() {
     esp_lcd_panel_del(panel_handle);
     esp_lcd_panel_io_del(io_handle);
     spi_bus_free(TEST_SPI_HOST_ID);
-    free(screen_buff);
+    if (buffers[0]) {
+        free(buffers[0]);
+        buffers[0] = NULL;
+    }
+    if (buffers[1]) {
+        free(buffers[1]);
+        buffers[1] = NULL;
+    }
     //gpio_reset_pin(TEST_LCD_BK_LIGHT_GPIO);
 }
 
 void st7789_Update() {
-    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, _width, _height, screen_buff);
+    esp_lcd_panel_draw_bitmap(panel_handle, 0, 0, _width, _height, buffers[curr_buff]);
+    
+    curr_buff++;
+    curr_buff &= 0x01;
 }
 
 void st7789_SetBL(uint8_t Value) {
@@ -122,39 +136,11 @@ void st7789_SetBL(uint8_t Value) {
 void st7789_FillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {
     uint16_t x_start = x;
     uint16_t y_start = y;
+    uint16_t *buff = buffers[curr_buff];
 
     for (y = y_start; y < y_start + h; y++) {
         for (x = x_start; x < x_start + w; x++) {
-            screen_buff[(y * _width) + x] = color;
+            buff[(y * _width) + x] = color;
         }
     }
-}
-
-void lcd_panel_test() {
-    uint8_t *img = heap_caps_malloc(TEST_IMG_SIZE, MALLOC_CAP_DMA);
-
-    for (int i = 0; i < 100; i++) {
-        uint8_t color_byte = rand() & 0xFF;
-        int x_start = rand() % (TEST_LCD_H_RES - 200);
-        int y_start = rand() % (TEST_LCD_V_RES - 200);
-        memset(img, color_byte, TEST_IMG_SIZE);
-        esp_lcd_panel_draw_bitmap(panel_handle, x_start, y_start, x_start + 200, y_start + 200, img);
-    }
-
-    printf("go into sleep mode\r\n");
-    esp_lcd_panel_disp_sleep(panel_handle, true);
-    vTaskDelay(pdMS_TO_TICKS(500));
-    printf("exit sleep mode\r\n");
-    esp_lcd_panel_disp_sleep(panel_handle, false);
-
-    for (int i = 0; i < 100; i++) {
-        uint8_t color_byte = rand() & 0xFF;
-        int x_start = rand() % (TEST_LCD_H_RES - 200);
-        int y_start = rand() % (TEST_LCD_V_RES - 200);
-        memset(img, color_byte, TEST_IMG_SIZE);
-        esp_lcd_panel_draw_bitmap(panel_handle, x_start, y_start, x_start + 200, y_start + 200, img);
-    }
-
-    free(img);
-
 }

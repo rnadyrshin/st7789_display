@@ -42,7 +42,7 @@ typedef union
 
 void dispcolor_Init(uint16_t Width, uint16_t Height);
 void dispcolor_Update();
-void dispcolor_ClearScreen(void);
+void dispcolor_ClearScreen();
 void dispcolor_SetBrightness(uint8_t Value);
 void dispcolor_FillScreen(uint16_t color);
 void dispcolor_DrawPixel(int16_t X, int16_t Y, uint16_t color);

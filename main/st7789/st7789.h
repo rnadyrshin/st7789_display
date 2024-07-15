@@ -13,7 +13,7 @@ extern "C" {
 #define TEST_LCD_PCLK_GPIO      4
 #define TEST_LCD_MOSI_GPIO      5
 
-#define TEST_LCD_PIXEL_CLOCK_HZ (20 * 1000 * 1000)
+#define TEST_LCD_PIXEL_CLOCK_HZ (30 * 1000 * 1000)
 
 void st7789_init(uint16_t width, uint16_t height);
 void st7789_deinit();
