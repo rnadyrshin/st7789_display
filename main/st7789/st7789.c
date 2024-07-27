@@ -5,6 +5,7 @@
 #include "freertos/task.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
+#include "driver/ledc.h"
 #include "esp_lcd_panel_io.h"
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
@@ -57,6 +58,44 @@ static void lcd_common_init(esp_lcd_panel_io_handle_t *io_handle, esp_lcd_panel_
     esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)TEST_SPI_HOST_ID, &io_config, io_handle);
 }
 
+static void backlight_init() {
+    ledc_timer_config_t ledcfg = {
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .duty_resolution = LEDC_TIMER_8_BIT,
+        .timer_num = LEDC_TIMER_0,
+        .freq_hz = 100000,
+        //.clk_cfg = 0,
+        .deconfigure = false,
+    };
+    ledc_timer_config(&ledcfg);
+
+    ledc_channel_config_t ledchancfg = {
+        .gpio_num = TEST_LCD_BK_LIGHT_GPIO,
+        .speed_mode = LEDC_LOW_SPEED_MODE,
+        .channel = LEDC_CHANNEL_0,
+        .intr_type = LEDC_INTR_DISABLE,
+        .timer_sel = LEDC_TIMER_0,
+        .duty = 0,
+    };
+    ledc_channel_config(&ledchancfg);
+/*
+    // turn off backlight
+    gpio_config_t bk_gpio_config = {
+        .mode = GPIO_MODE_OUTPUT,
+        .pin_bit_mask = 1ULL << TEST_LCD_BK_LIGHT_GPIO
+    };
+    gpio_config(&bk_gpio_config);
+    gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, 0);
+*/
+}
+
+void st7789_SetBL(uint8_t Value) {
+    ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, Value);
+    ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
+
+    //gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, Value ? 1 : 0);
+}
+
 void st7789_DrawPixel(int16_t x, int16_t y, uint16_t color) {
     uint16_t *buff = buffers[curr_buff];
     buff[(y * _width) + x] = color;
@@ -70,14 +109,8 @@ uint16_t st7789_GetPixel(int16_t x, int16_t y) {
 void st7789_init(uint16_t width, uint16_t height) {
     _width = width;
     _height = height;
-    // turn off backlight
-    gpio_config_t bk_gpio_config = {
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = 1ULL << TEST_LCD_BK_LIGHT_GPIO
-    };
-    gpio_config(&bk_gpio_config);
-    gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, 0);
 
+    backlight_init();
     lcd_common_init(&io_handle, NULL, NULL, 8, 8);
 
     esp_lcd_panel_dev_config_t panel_config = {
@@ -127,10 +160,6 @@ void st7789_Update() {
     
     curr_buff++;
     curr_buff &= 0x01;
-}
-
-void st7789_SetBL(uint8_t Value) {
-    gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, Value ? 1 : 0);
 }
 
 void st7789_FillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) {

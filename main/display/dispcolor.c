@@ -39,8 +39,8 @@ void dispcolor_Update() {
 }
 
 void dispcolor_SetBrightness(uint8_t Value) {
-	if (Value > 100)
-		Value = 100;
+	//if (Value > 100)
+	//	Value = 100;
 
 #if (DISPCOLOR_type == DISPTYPE_st7789)
 	st7789_SetBL(Value);

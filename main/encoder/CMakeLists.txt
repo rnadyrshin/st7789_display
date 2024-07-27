@@ -1,5 +1,5 @@
 idf_component_register(
 SRCS 
-"st7789.c"
+"encoder.c"
 INCLUDE_DIRS "."
 )

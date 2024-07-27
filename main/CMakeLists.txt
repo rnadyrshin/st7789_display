@@ -1,6 +1,7 @@
 set(srcs "display"
          "display/fonts"
          "st7789"
+         "encoder"
          ".")
 
 
