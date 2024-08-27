@@ -47,9 +47,4 @@ void app_main()
         dispcolor_Update();
         vTaskDelay(20);
     }
-
-    //lcd_panel_test();
-
-    //printf("turn off the panel\r\n");
-    //st7789_deinit();
 }

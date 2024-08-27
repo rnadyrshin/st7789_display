@@ -78,22 +78,11 @@ static void backlight_init() {
         .duty = 0,
     };
     ledc_channel_config(&ledchancfg);
-/*
-    // turn off backlight
-    gpio_config_t bk_gpio_config = {
-        .mode = GPIO_MODE_OUTPUT,
-        .pin_bit_mask = 1ULL << TEST_LCD_BK_LIGHT_GPIO
-    };
-    gpio_config(&bk_gpio_config);
-    gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, 0);
-*/
 }
 
 void st7789_SetBL(uint8_t Value) {
     ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, Value);
     ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0);
-
-    //gpio_set_level(TEST_LCD_BK_LIGHT_GPIO, Value ? 1 : 0);
 }
 
 void st7789_DrawPixel(int16_t x, int16_t y, uint16_t color) {
@@ -125,8 +114,6 @@ void st7789_init(uint16_t width, uint16_t height) {
     esp_lcd_panel_reset(panel_handle);
     esp_lcd_panel_init(panel_handle);
     esp_lcd_panel_invert_color(panel_handle, true);
-    // the gap is LCD panel specific, even panels with the same driver IC, can have different gap value
-    //esp_lcd_panel_set_gap(panel_handle, 0, 20);
     esp_lcd_panel_set_gap(panel_handle, 35, 0);
 
     esp_lcd_panel_disp_on_off(panel_handle, true);
